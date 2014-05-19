@@ -1,0 +1,22 @@
+{
+  "manifest_version": 2,
+
+  "name": "mc-addon",
+  "description": "",
+  "version": "1.0.0",
+
+  "permissions": [
+    "http://localhost:8000/"
+  ],
+  "browser_action": {
+    "default_icon": "assets/icon.png",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "page": "background.html",
+    "persistent": true
+  },
+  "sandbox": {
+    "pages": ["runner.html"]
+  }
+}
