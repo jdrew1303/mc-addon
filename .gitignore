@@ -3,4 +3,4 @@ bower_components/
 dist/
 gen/
 
-manifest.ejs.json
+manifest.json

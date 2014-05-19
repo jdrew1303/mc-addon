@@ -1,12 +1,12 @@
 {
   "manifest_version": 2,
 
-  "name": "mc-addon",
-  "description": "",
-  "version": "1.0.0",
+  "name": "<%= data.pkg.name %>",
+  "description": "<%= data.pkg.description %>",
+  "version": "<%= data.pkg.version %>",
 
   "permissions": [
-    "http://localhost:8000/"
+    "<%= data.env.API_ROOT %>/"
   ],
   "browser_action": {
     "default_icon": "assets/icon.png",
