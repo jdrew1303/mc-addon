@@ -28,7 +28,7 @@ module.exports = function(grunt) {
             }
         },
         jshint: {
-            all: ['Gruntfile.js', 'src/js/*.js']
+            all: ['Gruntfile.js', 'src/js/**/*.js']
         },
         'http-server': {
             dev: {

@@ -3,7 +3,7 @@ angular.module('mc-addon.background', ['uuid4'])
 .provider('runnerIframe', [function () {
     var elementId = 'runner';
     return {
-        setIframeId: function (id) { elementId = id },
+        setIframeId: function (id) { elementId = id; },
         $get: ['$document', function ($document) {
             return angular.element($document[0].getElementById(elementId));
         }]
@@ -12,7 +12,7 @@ angular.module('mc-addon.background', ['uuid4'])
 
 .service('messageCache', [function () {
     var cache = {};
-    this.put = function (msgId, d) { cache[msgId] = d };
+    this.put = function (msgId, d) { cache[msgId] = d; };
     this.purge = function (msgId, result, error) {
         var deferred = cache[msgId];
         if (deferred) {
@@ -23,7 +23,7 @@ angular.module('mc-addon.background', ['uuid4'])
                 deferred.reject(error);
             }
         }
-    }
+    };
 }])
 
 .factory('messageHandler', ['messageCache', function (cache) {
