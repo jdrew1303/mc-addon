@@ -62,7 +62,8 @@ module.exports = function(grunt) {
                     }
                 },
                 files: {
-                    'manifest.json': ['manifest.ejs.json']
+                    'manifest.json': ['manifest.ejs.json'],
+                    'gen/config.js': ['config.ejs.js']
                 }
             }
         },

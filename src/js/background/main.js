@@ -57,10 +57,30 @@ angular.module('mc-addon.background.runner', ['uuid4'])
     $window.addEventListener('message', messageHandler);
 }]);
 
-angular.module('mc-addon.background.messages', ['mc-addon.background.runner'])
+angular.module('mc-addon.background.messages', [
+    'mc-addon.background.runner',
+    'mc-addon.config'
+])
 
-.run(['runTask', function (runTask) {
-    var socket = new WebSocket("ws://localhost:5000/tasks");
+.run(['$timeout', 'CONFIG', 'runTask', function ($timeout, CONFIG, runTask) {
+    var socketOpen = false;
+    var socket = new WebSocket(CONFIG.WS_API_ROOT + "/tasks");
+    var heartbeat = function () {
+        if (socketOpen) {
+            socket.send(JSON.stringify({}));
+            $timeout(heartbeat, 5000, false);
+        }
+    };
+
+    socket.onopen = function (event) {
+        socketOpen = true;
+        heartbeat();
+    };
+
+    socket.onclose = function (event) {
+        socketOpen = false;
+    };
+
     socket.onmessage = function (event) {
         var msg = JSON.parse(event.data);
         var task = msg.task;
@@ -71,7 +91,7 @@ angular.module('mc-addon.background.messages', ['mc-addon.background.runner'])
                 error: null,
                 result: result,
                 task: task
-            }))
+            }));
         }, function (error) {
             socket.send(JSON.stringify({
                 error: error,
@@ -80,4 +100,6 @@ angular.module('mc-addon.background.messages', ['mc-addon.background.runner'])
             }));
         });
     };
+
+
 }]);
