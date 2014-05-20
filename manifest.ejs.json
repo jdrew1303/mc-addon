@@ -6,7 +6,7 @@
   "version": "<%= data.pkg.version %>",
 
   "permissions": [
-    "<%= data.env.API_ROOT %>/"
+    "<%= data.env.HTTP_API_ROOT %>/*"
   ],
   "browser_action": {
     "default_icon": "assets/icon.png",

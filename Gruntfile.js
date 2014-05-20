@@ -1,7 +1,8 @@
 module.exports = function(grunt) {
 
     var REQUIRED_BUILD_ENVVARS = [
-        'API_ROOT'
+        'HTTP_API_ROOT',
+        'WS_API_ROOT'
     ];
 
     var missingKeys = function (obj, keys) {

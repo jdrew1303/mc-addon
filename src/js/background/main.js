@@ -1,4 +1,8 @@
-angular.module('mc-addon.background', ['uuid4'])
+angular.module('mc-addon.background', [
+    'mc-addon.background.messages'
+]);
+
+angular.module('mc-addon.background.runner', ['uuid4'])
 
 .provider('runnerIframe', [function () {
     var elementId = 'runner';
@@ -32,7 +36,7 @@ angular.module('mc-addon.background', ['uuid4'])
     };
 }])
 
-.factory('eval', ['$q', 'uuid4', 'runnerIframe', 'messageCache',
+.factory('runTask', ['$q', 'uuid4', 'runnerIframe', 'messageCache',
     function ($q, uuid4, iframe, messageCache) {
 
     var prefix = "(function (input) {";
@@ -51,4 +55,29 @@ angular.module('mc-addon.background', ['uuid4'])
 
 .run(['$window', 'messageHandler', function($window, messageHandler) {
     $window.addEventListener('message', messageHandler);
+}]);
+
+angular.module('mc-addon.background.messages', ['mc-addon.background.runner'])
+
+.run(['runTask', function (runTask) {
+    var socket = new WebSocket("ws://localhost:5000/tasks");
+    socket.onmessage = function (event) {
+        var msg = JSON.parse(event.data);
+        var task = msg.task;
+        var code = msg.code;
+        var inputs = msg.inputs;
+        runTask(code, inputs).then(function (result) {
+            socket.send(JSON.stringify({
+                error: null,
+                result: result,
+                task: task
+            }))
+        }, function (error) {
+            socket.send(JSON.stringify({
+                error: error,
+                result: null,
+                task: task
+            }));
+        });
+    };
 }]);
