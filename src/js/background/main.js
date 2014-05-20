@@ -1,74 +1,52 @@
-angular.module('mc-addon.background', [
-    'mc-addon.background.messages'
-]);
+angular.module('mc-addon.background', ['mc-addon.config'])
 
-angular.module('mc-addon.background.runner', ['uuid4'])
-
-.provider('runnerIframe', [function () {
-    var elementId = 'runner';
-    return {
-        setIframeId: function (id) { elementId = id; },
-        $get: ['$document', function ($document) {
-            return angular.element($document[0].getElementById(elementId));
-        }]
-    };
+.factory('worker', ['$window', 'messageHandler', function ($window, messageHandler) {
+    var worker = new $window.Worker('worker.js');
+    worker.onmessage = messageHandler;
+    return worker;
 }])
 
 .service('messageCache', [function () {
     var cache = {};
     this.put = function (msgId, d) { cache[msgId] = d; };
-    this.purge = function (msgId, result, error) {
+    this.purge = function (msgId, data) {
         var deferred = cache[msgId];
         if (deferred) {
             delete cache[msgId];
-            if (!error) {
-                deferred.resolve(result);
-            } else {
-                deferred.reject(error);
-            }
+            deferred.resolve(data);
         }
     };
 }])
 
 .factory('messageHandler', ['messageCache', function (cache) {
     return function (event) {
-        cache.purge(event.data.uuid, event.data.result, event.data.error);
+        cache.purge(event.data.uuid, event.data);
     };
 }])
 
-.factory('runTask', ['$q', 'uuid4', 'runnerIframe', 'messageCache',
-    function ($q, uuid4, iframe, messageCache) {
+.factory('runTask', ['$q', 'worker', 'messageCache',
+    function ($q, worker, messageCache) {
 
     var prefix = "(function (input) {";
     var suffix = "});";
 
-    return function (code, inputs) {
+    return function (msgId, code, inputs) {
         var fn = prefix + code + suffix;
         var d = $q.defer();
-        var msgId = uuid4.generate();
         var msg = {uuid: msgId, code: fn, inputs: inputs};
         messageCache.put(msgId, d);
-        iframe[0].contentWindow.postMessage(msg, '*');
+        worker.postMessage(msg);
         return d.promise;
     };
 }])
 
-.run(['$window', 'messageHandler', function($window, messageHandler) {
-    $window.addEventListener('message', messageHandler);
-}]);
-
-angular.module('mc-addon.background.messages', [
-    'mc-addon.background.runner',
-    'mc-addon.config'
-])
-
-.run(['$timeout', 'CONFIG', 'runTask', function ($timeout, CONFIG, runTask) {
+.run(['$window', 'CONFIG', 'runTask', function ($window, CONFIG, runTask) {
     var socketOpen = false;
     var socket = new WebSocket(CONFIG.WS_API_ROOT + "/tasks");
     var heartbeat = function () {
         if (socketOpen) {
             socket.send(JSON.stringify({}));
-            $timeout(heartbeat, 5000, false);
+            $window.setTimeout(heartbeat, 5000);
         }
     };
 
@@ -86,18 +64,14 @@ angular.module('mc-addon.background.messages', [
         var task = msg.task;
         var code = msg.code;
         var inputs = msg.inputs;
-        runTask(code, inputs).then(function (result) {
-            socket.send(JSON.stringify({
-                error: null,
-                result: result,
-                task: task
-            }));
-        }, function (error) {
-            socket.send(JSON.stringify({
-                error: error,
-                result: null,
-                task: task
-            }));
+        runTask(task, code, inputs).then(function (res) {
+            var r = JSON.stringify({
+                parseError: res.parseError,
+                errors: res.errors,
+                result: res.results,
+                task: res.uuid
+            });
+            socket.send(r);
         });
     };
 

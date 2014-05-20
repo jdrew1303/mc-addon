@@ -18,5 +18,6 @@
   },
   "sandbox": {
     "pages": ["runner.html"]
-  }
+  },
+  "content_security_policy": "object-src 'self'; script-src 'self' 'unsafe-eval'"
 }
