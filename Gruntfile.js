@@ -72,16 +72,29 @@ module.exports = function(grunt) {
                 files: [
                     {'dist/manifest.json': ['manifest.json']},
                     {'dist/popup.html': ['popup.html']},
-                    {'dist/background.html': ['background.html']}
+                    {'dist/background.html': ['background.html']},
+                    {'dist/worker.js': ['worker.js']}
+                ]
+            },
+            workerLibs: {
+                files: [
+                    {
+                        expand: true,
+                        src: [
+                            'bower_components/underscore/underscore.js'
+                        ],
+                        dest: 'dist'
+                    }
                 ]
             },
             assets: {
                 files: [
-                    // includes files within path and its sub-directories
-                    {cwd: 'assets',
-                     expand: true,
-                     src: ['**'],
-                     dest: 'dist/assets'}
+                    {
+                        cwd: 'assets',
+                        expand: true,
+                        src: ['**'],
+                        dest: 'dist/assets'
+                    }
                 ]
             }
         },
